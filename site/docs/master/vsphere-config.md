@@ -61,6 +61,29 @@ For more complex installation needs, use either the Helm chart, or add `--dry-ru
 
 ## Designate pods with Restic annotation
 
+Pods with Persistent Volumes can be backed up and restore with the help of Restic. First annotate the PVs so that Velero knows to back them up. Annotate each volume associated to the pod.
+
+```bash
+kubectl -n kibishii annotate pod/<pod-name> backup.velero.io/backup-volumes=<volume-mount>
+```bash
+
+Create backup with velero.
+```bash
+velero backup create <backup-name> --include-namespaces <namespace>
+```bash
+
+Verify the velero backup logs to if the backup is succuessful which includes PVs.
+
+Now restore the backed up files from velero and verify the data on the volumes mounted in the Pods.
+
+```bash
+velero restore create --from-backup <backup-name>
+```bash
+
+With this, Backup and Restore of Pods is successful on vSphere.
+
+
+
 [0]: namespace.md
 [5]: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html
 [6]: api-types/volumesnapshotlocation.md#aws
