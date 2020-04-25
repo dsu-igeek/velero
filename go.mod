@@ -1,0 +1,74 @@
+module github.com/vmware-tanzu/velero
+
+go 1.13
+
+require (
+	cloud.google.com/go v0.46.2
+       github.com/Azure/azure-sdk-for-go v35.0.0+incompatible
+       github.com/Azure/go-autorest/autorest v0.9.0
+       github.com/Azure/go-autorest/autorest/adal v0.5.0
+       github.com/Azure/go-autorest/autorest/to v0.3.0
+       github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
+	github.com/aws/aws-sdk-go v1.13.12
+	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+	github.com/davecgh/go-spew v1.1.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/docker/spdystream v0.0.0-20170912183627-bc6354cbbc29
+	github.com/evanphx/json-patch v0.0.0-20170719203123-944e07253867
+	github.com/go-ini/ini v1.28.2
+	github.com/gobwas/glob v0.2.3
+	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gogo/protobuf v1.2.1
+	github.com/golang/protobuf v1.3.1
+	github.com/google/go-cmp v0.3.1
+	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
+	github.com/googleapis/gnostic v0.1.0
+	github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd
+	github.com/hashicorp/go-plugin v1.0.1-0.20190610192547-a1bc61569a26
+	github.com/hashicorp/golang-lru v0.0.0-20160813221303-0a025b7e63ad
+	github.com/hashicorp/yamux v0.0.0-20171005170212-f5742cb6b856
+	github.com/imdario/mergo v0.0.0-20160216103600-3e95a51e0639
+	github.com/inconshreveable/mousetrap v1.0.0
+	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
+	github.com/joho/godotenv v1.3.0
+	github.com/json-iterator/go v1.1.8
+	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
+	github.com/matttproud/golang_protobuf_extensions v1.0.1
+	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+	github.com/oklog/run v1.0.0
+	github.com/pkg/errors v0.8.0
+	github.com/pmezard/go-difflib v1.0.0
+	github.com/prometheus/client_golang v1.0.0
+	github.com/prometheus/client_model v0.0.0-20171117100541-99fa1f4be8e5
+	github.com/prometheus/common v0.0.0-20180518154759-7600349dcfe1
+	github.com/prometheus/procfs v0.0.2
+	github.com/robfig/cron v1.0.1-0.20170309132418-df38d32658d8
+	github.com/sirupsen/logrus v1.0.3
+	github.com/spf13/afero v0.0.0-20170217164146-9be650865eab
+	github.com/spf13/cobra v0.0.3
+	github.com/spf13/pflag v1.0.2
+	github.com/stretchr/objx v0.1.1
+	github.com/stretchr/testify v1.2.2
+	golang.org/x/crypto v0.0.0-20170818135134-eb71ad9bd329
+	golang.org/x/net v0.0.0-20170809000501-1c05540f6879
+	golang.org/x/oauth2 v0.0.0-20181017192945-9dcd33a902f4
+	golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca
+	golang.org/x/text v0.0.0-20170814122439-e56139fd9c5b
+	golang.org/x/time v0.0.0-20180314180208-26559e0f760e
+	google.golang.org/appengine v1.0.0
+	google.golang.org/genproto v0.0.0-20170818010345-ee236bd376b0
+	google.golang.org/grpc v1.19.0
+	gopkg.in/inf.v0 v0.9.0
+	gopkg.in/yaml.v2 v2.0.0-20170812160011-eb3733d160e7
+	k8s.io/api v0.17.0
+	k8s.io/apiextensions-apiserver v0.17.0
+	k8s.io/apimachinery v0.17.0
+	k8s.io/cli-runtime v0.17.0
+	k8s.io/client-go v0.17.0
+	k8s.io/klog v0.3.0
+	k8s.io/kube-openapi v0.0.0-20180629012420-d83b052f768a
+	k8s.io/utils v0.0.0-20191218082557-f07c713de883
+	sigs.k8s.io/yaml v1.1.0
+)
