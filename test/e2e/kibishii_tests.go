@@ -37,9 +37,15 @@ func installKibishii(ctx context.Context, namespace string, cloudPlatform string
 		return err
 	}
 
+	fmt.Printf("Waiting for kibishii jump-pad ready\n")
 	jumpPadWaitCmd := exec.CommandContext(ctx, "kubectl", "wait", "--for=condition=ready", "-n", namespace, "pod/jump-pad")
 	_, _, err = veleroexec.RunCommand(jumpPadWaitCmd)
 
+	// TODO - Fix kibishii so we can check that it is ready to go
+	if err == nil {
+		fmt.Printf("Sleeping for Kibishii startup\n")
+		time.Sleep(time.Minute * 1)
+	}
 	return err
 }
 
@@ -78,11 +84,11 @@ func RunKibishiiTests(client *kubernetes.Clientset, providerName, veleroCLI, bac
 	oneHourTimeout, _ := context.WithTimeout(context.Background(), time.Minute*60)
 
 	if err := CreateNamespace(fiveMinTimeout, client, kibishiiNamespace); err != nil {
-		errors.Wrapf(err, "Failed to create namespace %s to install Kibishii workload", kibishiiNamespace)
+		return errors.Wrapf(err, "Failed to create namespace %s to install Kibishii workload", kibishiiNamespace)
 	}
 
 	if err := installKibishii(fiveMinTimeout, kibishiiNamespace, providerName); err != nil {
-		errors.Wrap(err, "Failed to install Kibishii workload")
+		return errors.Wrap(err, "Failed to install Kibishii workload")
 	}
 
 	if err := generateData(oneHourTimeout, kibishiiNamespace, 2, 10, 10, 1024, 1024, 0, 2); err != nil {
@@ -90,6 +96,7 @@ func RunKibishiiTests(client *kubernetes.Clientset, providerName, veleroCLI, bac
 	}
 
 	if err := VeleroBackupNamespace(oneHourTimeout, veleroCLI, backupName, kibishiiNamespace); err != nil {
+		VeleroBackupLogs(fiveMinTimeout, veleroCLI, "", backupName)
 		return errors.Wrapf(err, "Failed to backup kibishii namespace %s", kibishiiNamespace)
 	}
 
