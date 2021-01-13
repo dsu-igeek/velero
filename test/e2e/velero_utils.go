@@ -29,13 +29,13 @@ import (
 
 	veleroexec "github.com/vmware-tanzu/velero/pkg/util/exec"
 
-	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/pkg/errors"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 
 	velerov1api "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
-	"github.com/vmware-tanzu/velero/pkg/client"
+	veleroClient "github.com/vmware-tanzu/velero/pkg/client"
 	cliinstall "github.com/vmware-tanzu/velero/pkg/cmd/cli/install"
 	"github.com/vmware-tanzu/velero/pkg/cmd/cli/uninstall"
 	"github.com/vmware-tanzu/velero/pkg/cmd/util/flag"
@@ -99,7 +99,7 @@ func getProviderVeleroInstallOptions(
 
 // installVeleroServer installs velero in the cluster.
 func installVeleroServer(io *cliinstall.InstallOptions) error {
-	config, err := client.LoadConfig()
+	config, err := veleroClient.LoadConfig()
 	if err != nil {
 		return err
 	}
@@ -109,17 +109,14 @@ func installVeleroServer(io *cliinstall.InstallOptions) error {
 		return errors.Wrap(err, "Failed to translate InstallOptions to VeleroOptions for Velero")
 	}
 
-	f := client.NewFactory("e2e", config)
+	f := veleroClient.NewFactory("e2e", config)
 	resources := install.AllResources(vo)
-	if err != nil {
-		return errors.Wrap(err, "Failed to install Velero in the cluster")
-	}
 
 	dynamicClient, err := f.DynamicClient()
 	if err != nil {
 		return err
 	}
-	factory := client.NewDynamicFactory(dynamicClient)
+	factory := veleroClient.NewDynamicFactory(dynamicClient)
 	errorMsg := "\n\nError installing Velero. Use `kubectl logs deploy/velero -n velero` to check the deploy logs"
 	err = install.Install(factory, resources, os.Stdout)
 	if err != nil {
@@ -249,6 +246,30 @@ func veleroBackupNamespace(ctx context.Context, veleroCLI string, veleroNamespac
 	}
 
 	backupCmd := exec.CommandContext(ctx, veleroCLI, args...)
+	backupCmd.Stdout = os.Stdout
+	backupCmd.Stderr = os.Stderr
+	fmt.Printf("backup cmd =%v\n", backupCmd)
+	err := backupCmd.Run()
+	if err != nil {
+		return err
+	}
+	err = checkBackupPhase(ctx, veleroCLI, veleroNamespace, backupName, velerov1api.BackupPhaseCompleted)
+
+	return err
+}
+
+// veleroBackupExcludeNamespaces uses the veleroCLI to backup a namespace.
+func veleroBackupExcludeNamespaces(ctx context.Context, veleroCLI string, veleroNamespace string, backupName string, excludeNamespaces []string) error {
+	namespaces := ""
+	for nsNum, curNamespace := range excludeNamespaces {
+		if nsNum > 0 {
+			namespaces = namespaces + ","
+		}
+		namespaces = namespaces + curNamespace
+	}
+	backupCmd := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "create", "backup", backupName,
+		"--exclude-namespaces", namespaces,
+		"--default-volumes-to-restic", "--wait")
 	backupCmd.Stdout = os.Stdout
 	backupCmd.Stderr = os.Stderr
 	fmt.Printf("backup cmd =%v\n", backupCmd)
