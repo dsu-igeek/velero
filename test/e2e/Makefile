@@ -54,7 +54,10 @@ BSL_BUCKET ?=
 BSL_PREFIX ?=
 BSL_CONFIG ?=
 VSL_CONFIG ?=
+<<<<<<< HEAD
 CLOUD_PROVIDER ?=
+=======
+>>>>>>> E2E tests now run in multiple clouds in addition to KIND
 OBJECT_STORE_PROVIDER ?=
 
 .PHONY:ginkgo
