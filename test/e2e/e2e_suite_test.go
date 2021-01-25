@@ -1,8 +1,13 @@
 package e2e
 
 import (
+	"context"
 	"flag"
 	"testing"
+	"time"
+
+	"github.com/google/uuid"
+	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,6 +16,7 @@ import (
 var (
 	veleroCLI, veleroImage, cloudCredentialsFile, bslConfig, bslBucket, bslPrefix, vslConfig, cloudProvider, objectStoreProvider, veleroNamespace string
 	installVelero, useVolumeSnapshots                                                                                                             bool
+	client                                                                                                                                        *kubernetes.Clientset
 )
 
 func init() {
@@ -22,7 +28,7 @@ func init() {
 	flag.StringVar(&veleroImage, "velero-image", "velero/velero:main", "image for the velero server to be tested.")
 	flag.StringVar(&bslConfig, "bsl-config", "", "configuration to use for the backup storage location. Format is key1=value1,key2=value2")
 	flag.StringVar(&bslPrefix, "prefix", "", "prefix under which all Velero data should be stored within the bucket. Optional.")
-	flag.StringVar(&vslConfig, "vsl-config", "", "configuration to use for the volume snapshot location. Format is key1=value1,key2=value2")
+	flag.StringVar(&vslConfig, "vsl-config", "", "ce2eonfiguration to use for the volume snapshot location. Format is key1=value1,key2=value2")
 	flag.StringVar(&veleroNamespace, "velero-namespace", "velero", "Namespace to install Velero into")
 	flag.BoolVar(&installVelero, "install-velero", true, "Install/uninstall velero during the test.  Optional.")
 	flag.BoolVar(&useVolumeSnapshots, "use-volume-snapshots", false, "Use volume-snapshotter plugin for volume backup.  Optional")
@@ -39,3 +45,25 @@ func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
+
+var _ = BeforeSuite(func() {
+	var err error
+	flag.Parse()
+	uuidgen, err = uuid.NewRandom()
+	Expect(err).To(Succeed())
+	if installVelero {
+		VeleroInstall(context.Background(), veleroNamespace, cloudProvider, objectStoreProvider, useVolumeSnapshots,
+			cloudCredentialsFile, bslBucket, bslPrefix, bslConfig, vslConfig)
+	}
+	client, err = GetClusterClient()
+	Expect(err).To(Succeed(), "Failed to instantiate cluster client")
+})
+
+var _ = AfterSuite(func() {
+	if installVelero {
+		timeoutCTX, _ := context.WithTimeout(context.Background(), time.Minute)
+		err := VeleroUninstall(timeoutCTX, client, veleroNamespace)
+		Expect(err).To(Succeed())
+	}
+
+})

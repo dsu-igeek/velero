@@ -3,6 +3,8 @@ package e2e
 import (
 	"os/exec"
 
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -43,4 +45,8 @@ func CreateNamespace(ctx context.Context, client *kubernetes.Clientset, namespac
 		return nil
 	}
 	return err
+}
+
+func GetNamespace(ctx context.Context, client *kubernetes.Clientset, namespace string) (*v1.Namespace, error) {
+	return client.CoreV1().Namespaces().Get(ctx, namespace, metav1.GetOptions{})
 }

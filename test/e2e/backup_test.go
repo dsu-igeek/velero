@@ -1,10 +1,6 @@
 package e2e
 
 import (
-	"context"
-	"flag"
-	"time"
-
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,24 +21,8 @@ var _ = Describe("[Restic] Velero tests on cluster using the plugin provider for
 
 	BeforeEach(func() {
 		var err error
-		flag.Parse()
-		uuidgen, err = uuid.NewRandom()
-		Expect(err).To(Succeed())
-		if installVelero {
-			VeleroInstall(context.Background(), veleroNamespace, cloudProvider, objectStoreProvider, useVolumeSnapshots,
-				cloudCredentialsFile, bslBucket, bslPrefix, bslConfig, vslConfig)
-		}
 		client, err = GetClusterClient()
 		Expect(err).To(Succeed(), "Failed to instantiate cluster client")
-	})
-
-	AfterEach(func() {
-		if installVelero {
-			timeoutCTX, _ := context.WithTimeout(context.Background(), time.Minute)
-			err := VeleroUninstall(timeoutCTX, client, veleroNamespace)
-			Expect(err).To(Succeed())
-		}
-
 	})
 
 	Context("When kibishii is the sample workload", func() {

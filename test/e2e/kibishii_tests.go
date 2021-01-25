@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"time"
@@ -23,7 +24,8 @@ func installKibishii(ctx context.Context, namespace string, cloudPlatform string
 	// We use kustomize to generate YAML for Kibishii from the checked-in yaml directories
 	kibishiiInstallCmd := exec.CommandContext(ctx, "kubectl", "apply", "-n", namespace, "-k",
 		"github.com/vmware-tanzu-labs/distributed-data-generator/kubernetes/yaml/"+cloudPlatform)
-
+	kibishiiInstallCmd.Stdout = os.Stdout
+	kibishiiInstallCmd.Stderr = os.Stderr
 	_, _, err := veleroexec.RunCommand(kibishiiInstallCmd)
 	if err != nil {
 		return errors.Wrap(err, "failed to install kibishii")
@@ -31,6 +33,8 @@ func installKibishii(ctx context.Context, namespace string, cloudPlatform string
 
 	kibishiiSetWaitCmd := exec.CommandContext(ctx, "kubectl", "rollout", "status", "statefulset.apps/kibishii-deployment",
 		"-n", namespace, "-w", "--timeout=30m")
+	kibishiiSetWaitCmd.Stdout = os.Stdout
+	kibishiiSetWaitCmd.Stderr = os.Stderr
 	_, _, err = veleroexec.RunCommand(kibishiiSetWaitCmd)
 
 	if err != nil {
@@ -39,6 +43,8 @@ func installKibishii(ctx context.Context, namespace string, cloudPlatform string
 
 	fmt.Printf("Waiting for kibishii jump-pad ready\n")
 	jumpPadWaitCmd := exec.CommandContext(ctx, "kubectl", "wait", "--for=condition=ready", "-n", namespace, "pod/jump-pad")
+	jumpPadWaitCmd.Stdout = os.Stdout
+	jumpPadWaitCmd.Stderr = os.Stderr
 	_, _, err = veleroexec.RunCommand(jumpPadWaitCmd)
 
 	// TODO - Fix kibishii so we can check that it is ready to go
