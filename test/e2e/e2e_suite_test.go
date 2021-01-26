@@ -10,7 +10,7 @@ import (
 
 var (
 	veleroCLI, veleroImage, cloudCredentialsFile, bslConfig, bslBucket, bslPrefix, vslConfig, cloudProvider, objectStoreProvider, veleroNamespace string
-	installVelero, useVolumeSnapshots bool
+	installVelero, useVolumeSnapshots                                                                                                             bool
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 	flag.StringVar(&bslPrefix, "prefix", "", "prefix under which all Velero data should be stored within the bucket. Optional.")
 	flag.StringVar(&vslConfig, "vsl-config", "", "configuration to use for the volume snapshot location. Format is key1=value1,key2=value2")
 	flag.StringVar(&veleroNamespace, "velero-namespace", "velero", "Namespace to install Velero into")
-	flag.BoolVar(&installVelero, "install-velero", true, "Install/uninstall velero during the test.  Optional." )
+	flag.BoolVar(&installVelero, "install-velero", true, "Install/uninstall velero during the test.  Optional.")
 	flag.BoolVar(&useVolumeSnapshots, "use-volume-snapshots", false, "Use volume-snapshotter plugin for volume backup.  Optional")
 }
 

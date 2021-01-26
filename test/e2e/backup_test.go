@@ -3,11 +3,12 @@ package e2e
 import (
 	"context"
 	"flag"
+	"time"
+
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes"
-	"time"
 )
 
 var (
@@ -50,7 +51,8 @@ var _ = Describe("[Restic] Velero tests on cluster using the plugin provider for
 			restoreName = "restore-" + uuidgen.String()
 			// Even though we are using Velero's CloudProvider plugin for object storage, the kubernetes cluster is running on
 			// KinD. So use the kind installation for Kibishii.
-			Expect(RunKibishiiTests(client, cloudProvider, veleroCLI, backupName, restoreName)).To(Succeed(), "Failed to successfully backup and restore Kibishii namespace")
+			Expect(RunKibishiiTests(client, cloudProvider, veleroCLI, veleroNamespace, backupName, restoreName)).To(Succeed(),
+				"Failed to successfully backup and restore Kibishii namespace")
 		})
 	})
 })

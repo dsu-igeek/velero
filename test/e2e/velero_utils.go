@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 
 	velerov1api "github.com/vmware-tanzu/velero/pkg/apis/velero/v1"
 	"github.com/vmware-tanzu/velero/pkg/client"
@@ -97,13 +98,13 @@ func InstallVeleroServer(io *cliinstall.InstallOptions) error {
 	}
 
 	fmt.Println("Waiting for Velero deployment to be ready.")
-	if _, err = install.DeploymentIsReady(factory, "velero"); err != nil {
+	if _, err = install.DeploymentIsReady(factory, io.Namespace); err != nil {
 		return errors.Wrap(err, errorMsg)
 	}
 
 	// restic enabled by default
 	fmt.Println("Waiting for Velero restic daemonset to be ready.")
-	if _, err = install.DaemonSetIsReady(factory, "velero"); err != nil {
+	if _, err = install.DaemonSetIsReady(factory, io.Namespace); err != nil {
 		return errors.Wrap(err, errorMsg)
 	}
 
@@ -111,8 +112,11 @@ func InstallVeleroServer(io *cliinstall.InstallOptions) error {
 }
 
 // CheckBackupPhase uses veleroCLI to inspect the phase of a Velero backup.
-func CheckBackupPhase(ctx context.Context, veleroCLI string, backupName string, expectedPhase velerov1api.BackupPhase) error {
-	checkCMD := exec.CommandContext(ctx, veleroCLI, "backup", "get", "-o", "json", backupName)
+func CheckBackupPhase(ctx context.Context, veleroCLI string, veleroNamespace string, backupName string,
+	expectedPhase velerov1api.BackupPhase) error {
+	checkCMD := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "backup", "get", "-o", "json",
+		backupName)
+
 	fmt.Printf("get backup cmd =%v\n", checkCMD)
 	stdoutPipe, err := checkCMD.StdoutPipe()
 	if err != nil {
@@ -152,8 +156,11 @@ func CheckBackupPhase(ctx context.Context, veleroCLI string, backupName string, 
 }
 
 // CheckRestorePhase uses veleroCLI to inspect the phase of a Velero restore.
-func CheckRestorePhase(ctx context.Context, veleroCLI string, restoreName string, expectedPhase velerov1api.RestorePhase) error {
-	checkCMD := exec.CommandContext(ctx, veleroCLI, "restore", "get", "-o", "json", restoreName)
+func CheckRestorePhase(ctx context.Context, veleroCLI string, veleroNamespace string, restoreName string,
+	expectedPhase velerov1api.RestorePhase) error {
+	checkCMD := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "restore", "get", "-o", "json",
+		restoreName)
+
 	fmt.Printf("get restore cmd =%v\n", checkCMD)
 	stdoutPipe, err := checkCMD.StdoutPipe()
 	if err != nil {
@@ -193,9 +200,11 @@ func CheckRestorePhase(ctx context.Context, veleroCLI string, restoreName string
 }
 
 // VeleroBackupNamespace uses the veleroCLI to backup a namespace.
-func VeleroBackupNamespace(ctx context.Context, veleroCLI string, backupName string, namespace string) error {
-	backupCmd := exec.CommandContext(ctx, veleroCLI, "create", "backup", backupName, "--include-namespaces", namespace,
+func VeleroBackupNamespace(ctx context.Context, veleroCLI string, veleroNamespace string, backupName string, namespace string) error {
+	backupCmd := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "create", "backup", backupName,
+		"--include-namespaces", namespace,
 		"--default-volumes-to-restic", "--wait")
+
 	backupCmd.Stdout = os.Stdout
 	backupCmd.Stderr = os.Stderr
 	fmt.Printf("backup cmd =%v\n", backupCmd)
@@ -203,14 +212,16 @@ func VeleroBackupNamespace(ctx context.Context, veleroCLI string, backupName str
 	if err != nil {
 		return err
 	}
-	err = CheckBackupPhase(ctx, veleroCLI, backupName, velerov1api.BackupPhaseCompleted)
+	err = CheckBackupPhase(ctx, veleroCLI, veleroNamespace, backupName, velerov1api.BackupPhaseCompleted)
 
 	return err
 }
 
 // VeleroRestore uses the veleroCLI to restore from a Velero backup.
-func VeleroRestore(ctx context.Context, veleroCLI string, restoreName string, backupName string) error {
-	restoreCmd := exec.CommandContext(ctx, veleroCLI, "create", "restore", restoreName, "--from-backup", backupName, "--wait")
+func VeleroRestore(ctx context.Context, veleroCLI string, veleroNamespace string, restoreName string, backupName string) error {
+	restoreCmd := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "create", "restore", restoreName,
+		"--from-backup", backupName, "--wait")
+
 	restoreCmd.Stdout = os.Stdout
 	restoreCmd.Stderr = os.Stderr
 	fmt.Printf("restore cmd =%v\n", restoreCmd)
@@ -218,7 +229,7 @@ func VeleroRestore(ctx context.Context, veleroCLI string, restoreName string, ba
 	if err != nil {
 		return err
 	}
-	return CheckRestorePhase(ctx, veleroCLI, restoreName, velerov1api.RestorePhaseCompleted)
+	return CheckRestorePhase(ctx, veleroCLI, veleroNamespace, restoreName, velerov1api.RestorePhaseCompleted)
 }
 
 func VeleroInstall(ctx context.Context, veleroNamespace string, cloudProvider string, objectStoreProvider string, useVolumeSnapshots bool,
@@ -251,19 +262,19 @@ func VeleroInstall(ctx context.Context, veleroNamespace string, cloudProvider st
 	return nil
 }
 
-func VeleroUninstall(ctx context.Context, client *kubernetes.Clientset, namespace string) error {
-	return client.CoreV1().Namespaces().Delete(ctx, namespace, metav1.DeleteOptions{})
+func VeleroUninstall(ctx context.Context, client *kubernetes.Clientset, veleroNamespace string) error {
+	return client.CoreV1().Namespaces().Delete(ctx, veleroNamespace, metav1.DeleteOptions{})
 }
 
 func VeleroBackupLogs(ctx context.Context, veleroCLI string, veleroNamespace string, backupName string) error {
-	describeCmd := exec.CommandContext(ctx, veleroCLI, "backup", "describe", backupName)
+	describeCmd := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "backup", "describe", backupName)
 	describeCmd.Stdout = os.Stdout
 	describeCmd.Stderr = os.Stderr
 	err := describeCmd.Run()
 	if err != nil {
 		return err
 	}
-	logCmd := exec.CommandContext(ctx, veleroCLI, "backup", "logs", backupName)
+	logCmd := exec.CommandContext(ctx, veleroCLI, "--namespace", veleroNamespace, "backup", "logs", backupName)
 	logCmd.Stdout = os.Stdout
 	logCmd.Stderr = os.Stderr
 	err = logCmd.Run()
