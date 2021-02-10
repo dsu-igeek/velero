@@ -6,11 +6,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+)
+
+
+var (
+	ns_test_uuid uuid.UUID
 )
 
 var _ = Describe("[Basic] Backup/restore of 2 namespaces", func() {
@@ -22,14 +28,16 @@ var _ = Describe("[Basic] Backup/restore of 2 namespaces", func() {
 		var err error
 		client, err = GetClusterClient()
 		Expect(err).To(Succeed(), "Failed to instantiate cluster client")
+		ns_test_uuid, err = uuid.NewRandom()
+		Expect(err).To(Succeed(), "Failed to generate UUID for backup")
 	})
 
 	Context("When I create 2 namespaces", func() {
 		It("should be successfully backed up and restored", func() {
-			backupName := "backup-" + uuidgen.String()
-			restoreName := "restore-" + uuidgen.String()
+			backupName := "backup-" + ns_test_uuid.String()
+			restoreName := "restore-" + ns_test_uuid.String()
 			fiveMinTimeout, _ := context.WithTimeout(context.Background(), 5*time.Minute)
-			RunMultipleNamespaceTest(fiveMinTimeout, client, "nstest-"+uuidgen.String(), 2,
+			RunMultipleNamespaceTest(fiveMinTimeout, client, "nstest-"+ns_test_uuid.String(), 2,
 				backupName, restoreName)
 		})
 	})
@@ -48,10 +56,10 @@ var _ = Describe("[Scale] Backup/restore of 2500 namespaces", func() {
 
 	Context("When I create 2500 namespaces", func() {
 		It("should be successfully backed up and restored", func() {
-			backupName := "backup-" + uuidgen.String()
-			restoreName := "restore-" + uuidgen.String()
+			backupName := "backup-" + ns_test_uuid.String()
+			restoreName := "restore-" + ns_test_uuid.String()
 			oneHourTimeout, _ := context.WithTimeout(context.Background(), 1*time.Hour)
-			RunMultipleNamespaceTest(oneHourTimeout, client, "nstest-"+uuidgen.String(), 2500,
+			RunMultipleNamespaceTest(oneHourTimeout, client, "nstest-"+ns_test_uuid.String(), 5000,
 				backupName, restoreName)
 		})
 	})

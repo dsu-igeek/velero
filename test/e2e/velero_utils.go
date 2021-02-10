@@ -256,7 +256,7 @@ func VeleroRestore(ctx context.Context, veleroCLI string, veleroNamespace string
 	return CheckRestorePhase(ctx, veleroCLI, veleroNamespace, restoreName, velerov1api.RestorePhaseCompleted)
 }
 
-func VeleroInstall(ctx context.Context, veleroNamespace string, cloudProvider string, objectStoreProvider string, useVolumeSnapshots bool,
+func VeleroInstall(ctx context.Context, veleroNamespace string, veleroImage string, cloudProvider string, objectStoreProvider string, useVolumeSnapshots bool,
 	cloudCredentialsFile string, bslBucket string, bslPrefix string, bslConfig string, vslConfig string) error {
 
 	if cloudProvider != "kind" {
@@ -279,6 +279,7 @@ func VeleroInstall(ctx context.Context, veleroNamespace string, cloudProvider st
 	}
 	veleroInstallOptions.UseRestic = !useVolumeSnapshots
 	veleroInstallOptions.Namespace = veleroNamespace
+	veleroInstallOptions.Image = veleroImage
 	err = InstallVeleroServer(veleroInstallOptions)
 	if err != nil {
 		return errors.WithMessagef(err, "Failed to install Velero in cluster")

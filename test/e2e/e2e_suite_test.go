@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
@@ -49,10 +48,8 @@ func TestE2e(t *testing.T) {
 var _ = BeforeSuite(func() {
 	var err error
 	flag.Parse()
-	uuidgen, err = uuid.NewRandom()
-	Expect(err).To(Succeed())
 	if installVelero {
-		VeleroInstall(context.Background(), veleroNamespace, cloudProvider, objectStoreProvider, useVolumeSnapshots,
+		VeleroInstall(context.Background(), veleroNamespace, veleroImage, cloudProvider, objectStoreProvider, useVolumeSnapshots,
 			cloudCredentialsFile, bslBucket, bslPrefix, bslConfig, vslConfig)
 	}
 	client, err = GetClusterClient()
